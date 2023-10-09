@@ -1,7 +1,6 @@
 package css.bitmaptesting;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
 import android.graphics.Bitmap;
@@ -26,6 +25,7 @@ public class MainActivity extends AppCompatActivity {
     Map<String, Integer> map;
     ChemicalAnalysis chemicalAnalysis;
     private boolean bitmapAvailable = false;
+    Bitmap imageBitmap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,6 +40,7 @@ public class MainActivity extends AppCompatActivity {
         // set up buttons
         setupButton1();
         setupButton2();
+        setupProcess1();
     }
 
     private void setupButton1() {
@@ -48,12 +49,13 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Log.i("CIS4444","Button 1 onClick");
-                Bitmap imageBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.sample_a);
+                imageBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.sample_a);
                 mainViewModel.loadBitmap(imageBitmap);
                 imageViewCamera.setImageBitmap(imageBitmap);
                 bitmapAvailable = true;
             }
         });
+
     }
 
     private void setupButton2() {
@@ -62,7 +64,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Log.i("CIS4444","Button 2 onClick");
-                Bitmap imageBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.sample_b);
+                imageBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.sample_b);
                 mainViewModel.loadBitmap(imageBitmap);
                 imageViewCamera.setImageBitmap(imageBitmap);
                 bitmapAvailable = true;
@@ -70,8 +72,30 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    private void setupProcess1() {
+        buttonSample1 = findViewById(R.id.buttonProcess);
+        buttonSample1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.i("CIS4444","Process Button onClick");
+                if (bitmapAvailable) {
+                    Log.i("CIS4444","Bitmap ready for processing");
+                    analyzeBitmap();
+                }
+
+            }
+        });
+    }
+
+
     private void analyzeBitmap() {
 
+        Bitmap temp = extractSubwindow(imageBitmap, 900, 800, 1000, 1000);
+        if (temp!=null){
+            imageBitmap = temp;
+            mainViewModel.loadBitmap(imageBitmap);
+            imageViewCamera.setImageBitmap(imageBitmap);
+        }
         //analysis logic
         //populate map of regions from viewModel
         //map = mainViewModel.getRegionMap();
@@ -80,6 +104,23 @@ public class MainActivity extends AppCompatActivity {
         //start chemical analysis with map as param
         //chemicalAnalysis = new ChemicalAnalysis(map);
         //tvStatus.setText(chemicalAnalysis.getChemicalReading().toString());
+    }
+
+    // from chat GPT
+    public static Bitmap extractSubwindow(Bitmap sourceBitmap, int x, int y, int width, int height) {
+        if (sourceBitmap == null || x < 0 || y < 0 || width <= 0 || height <= 0) {
+            return null;
+        }
+        int sourceWidth = sourceBitmap.getWidth();
+        int sourceHeight = sourceBitmap.getHeight();
+
+        // Ensure the provided coordinates are within bounds
+        if (x + width > sourceWidth || y + height > sourceHeight) {
+            return null;
+        }
+        // Create a new bitmap for the sub-window
+        Bitmap subwindowBitmap = Bitmap.createBitmap(sourceBitmap, x, y, width, height);
+        return subwindowBitmap;
     }
 
 }
